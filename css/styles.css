@@ -16,8 +16,6 @@ body {
 
 #container > section {
   display: grid;
-  grid-template-columns: repeat(10, 3vmin);
-  grid-template-rows: repeat(10, 3vmin);
 }
 
 #container > section > div {
