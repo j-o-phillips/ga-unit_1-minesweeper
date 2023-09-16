@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+#container > section {
+  display: grid;
+  grid-template-columns: repeat(10, 3vmin);
+  grid-template-rows: repeat(10, 3vmin);
+}
+
+#container > section > div {
+  border-top: 2px solid rgb(223, 223, 223);
+  border-left: 2px solid rgb(223, 223, 223);
+  border-right: 2px solid rgb(72, 72, 72);
+  border-bottom: 2px solid rgb(72, 72, 72);
+  background-color: grey;
+}
+
+#container > section > div:hover {
+  background-color: rgb(153, 153, 153);
+}
