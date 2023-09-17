@@ -2,34 +2,7 @@
 
 const chosenBoardCols = 10;
 const chosenBoardRows = 10;
-const chosenNumberOfMines = 20;
-const checkMineMap = {
-  //These functions return 1 if a mine is found : 0 if not
-  1: function (rowIndex, colIndex) {
-    return board[rowIndex - 1][colIndex - 1] === "X" ? 1 : 0;
-  },
-  2: function (rowIndex, colIndex) {
-    return board[rowIndex - 1][colIndex] === "X" ? 1 : 0;
-  },
-  3: function (rowIndex, colIndex) {
-    return board[rowIndex - 1][colIndex + 1] === "X" ? 1 : 0;
-  },
-  4: function (rowIndex, colIndex) {
-    return board[rowIndex][colIndex - 1] === "X" ? 1 : 0;
-  },
-  5: function (rowIndex, colIndex) {
-    return board[rowIndex][colIndex + 1] === "X" ? 1 : 0;
-  },
-  6: function (rowIndex, colIndex) {
-    return board[rowIndex + 1][colIndex - 1] === "X" ? 1 : 0;
-  },
-  7: function (rowIndex, colIndex) {
-    return board[rowIndex + 1][colIndex] === "X" ? 1 : 0;
-  },
-  8: function (rowIndex, colIndex) {
-    return board[rowIndex + 1][colIndex + 1] === "X" ? 1 : 0;
-  },
-};
+const chosenNumberOfMines = 10;
 
 //! STATE VARIABLES
 
@@ -44,10 +17,11 @@ const grid = document.getElementById("grid");
 //! FUNCTIONS
 function init() {
   //initialize board data model
+  //We make the board 2 cols and 2 rows greater than player input, these will be 'borders'
   board = [];
-  for (let i = 0; i < chosenBoardRows; i++) {
+  for (let i = 0; i < chosenBoardRows + 2; i++) {
     let boardRow = [];
-    for (let i = 0; i < chosenBoardCols; i++) {
+    for (let i = 0; i < chosenBoardCols + 2; i++) {
       boardRow.push(0);
     }
     board.push(boardRow);
@@ -67,12 +41,26 @@ function createBoard() {
   //we will use r for rowindex, c for colIndex
   for (let r = 0; r < board.length; r++) {
     for (let c = 0; c < board[r].length; c++) {
-      let div = document.createElement("div");
-      //set the id as rowIndex, colIndex, each cell now has a unique id
-      div.setAttribute("id", `R${r}C${c}`);
-      div.addEventListener("click", handleClick);
-      grid.appendChild(div);
+      //if the cell is on the edge of our grid, we assign it 'B' for border
+      if (
+        r === 0 ||
+        r === board.length - 1 ||
+        c === 0 ||
+        c === board[r].length - 1
+      ) {
+        board[r][c] = "B";
+      } else {
+        let div = document.createElement("div");
+        //set the id as rowIndex, colIndex, each cell now has a unique id
+        div.setAttribute("id", `R${r}C${c}`);
+        div.setAttribute("data-row", r);
+        div.setAttribute("data-col", c);
+        div.addEventListener("click", handleClick);
+        grid.appendChild(div);
+      }
     }
+    //!Note: now that we have added an 'invisible' border, our cell indexes will start at 1 and finish at
+    //! .length -1, not 0 and .length
   }
 
   //add random mines
@@ -88,8 +76,11 @@ function addMines() {
     const colIndex = Math.floor(Math.random() * chosenBoardCols);
     const rowIndex = Math.floor(Math.random() * chosenBoardRows);
 
-    // if cell is not already a mine ('X'), set it to be 'X'
-    if (board[rowIndex][colIndex] !== "X") {
+    // if cell is not already a mine ('X'), and is not a border cell ('B'), set it to be 'X'
+    if (
+      board[rowIndex][colIndex] !== "X" &&
+      board[rowIndex][colIndex] !== "B"
+    ) {
       board[rowIndex][colIndex] = "X";
       minesToSet--;
       //this line belongs in the render function
@@ -100,97 +91,109 @@ function addMines() {
 
 function addNumbers() {
   //Add relevant numbers to all cells adjacent to mines
-  for (let r = 0; r < board.length; r++) {
-    for (let c = 0; c < board[r].length; c++) {
-      //If cell is a mine we do nothing
+  //We do not need to iterate over the borders so we start r and c at 1 and finish at length -1
+  for (let r = 1; r < board.length - 1; r++) {
+    for (let c = 1; c < board[r].length - 1; c++) {
       if (board[r][c] === "X") {
-        console.log("found mine");
+        console.log("found border or mine");
       } else {
-        //? BOUNDARY CHECKS
-        //Check if current cell is in corner of board
-        //top left
-        if (r === 0 && c === 0) {
-          mineNum = checkForMines(r, c, [5, 7, 8]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //top right
-        else if (r === 0 && c === board[r].length - 1) {
-          mineNum = checkForMines(r, c, [4, 6, 7]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //bottom left
-        else if (r === board.length - 1 && c === 0) {
-          mineNum = checkForMines(r, c, [2, 3, 5]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //bottom right
-        else if (r === board.length - 1 && c === board[r].length - 1) {
-          mineNum = checkForMines(r, c, [1, 2, 4]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //Check if current cell is at edge of board
-        //N
-        else if (r === 0) {
-          mineNum = checkForMines(r, c, [4, 5, 6, 7, 8]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //E
-        else if (c === board[r].length - 1) {
-          mineNum = checkForMines(r, c, [1, 2, 4, 6, 7]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //S
-        else if (r === board.length - 1) {
-          mineNum = checkForMines(r, c, [1, 2, 3, 4, 5]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //W
-        else if (c === 0) {
-          mineNum = checkForMines(r, c, [2, 3, 5, 7, 8]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
-        //cell in not located on grid border
-        else {
-          mineNum = checkForMines(r, c, [1, 2, 3, 4, 5, 6, 7, 8]);
-          board[r][c] = mineNum;
-          //this line should go to render() and function can be made more concise
-          document.getElementById(`R${r}C${c}`).innerHTML = mineNum;
-        }
+        let adjMines = 0;
+        if (board[r - 1][c - 1] === "X") adjMines++;
+        if (board[r - 1][c] === "X") adjMines++;
+        if (board[r - 1][c + 1] === "X") adjMines++;
+        if (board[r][c - 1] === "X") adjMines++;
+        if (board[r][c + 1] === "X") adjMines++;
+        if (board[r + 1][c - 1] === "X") adjMines++;
+        if (board[r + 1][c] === "X") adjMines++;
+        if (board[r + 1][c + 1] === "X") adjMines++;
+        board[r][c] = adjMines;
+        //this line should move to render()
+        document.getElementById(`R${r}C${c}`).innerHTML = adjMines;
       }
     }
   }
 }
 
-//This function checks for mines on board creation and assigns numbers to adjacent cells
-//The checking array contains the adjacent cells we want to check eg
-// 1 2 3
-// 4   5
-// 6 7 8
-//We will use these values to access the corresponding function in our checkingMap object
-function checkForMines(rowIndex, colIndex, checkingArray) {
-  let adjMines = 0;
-  for (const cell of checkingArray) {
-    adjMines += checkMineMap[cell](rowIndex, colIndex);
+function checkAllAdjacent(r, c) {
+  //This will be our list of cells to check
+  let checkList = [[r, c]];
+
+  document.getElementById(`R${r}C${c}`).style.backgroundColor = "lightblue";
+  //Set already checked cells to 'C', to avoid rechecking
+  board[r][c] = "C";
+
+  while (checkList.length > 0) {
+    //get current coords from first value in checklist
+    let x = checkList[0][0];
+    let y = checkList[0][1];
+    //delete it from checklist once we have the coords
+    checkList.shift();
+    //checkAdjacentCell is called for each cell adjacent to the current cell being checked
+    //it completes its method and if the cell is '0', it will return that cells coords,
+    //we can then push those coords to our checklist to be checked next
+    let newCoords;
+    //N
+    newCoords = checkAdjacentCell(x - 1, y);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //NE
+    newCoords = checkAdjacentCell(x - 1, y + 1);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //E
+    newCoords = checkAdjacentCell(x, y + 1);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //SE
+    newCoords = checkAdjacentCell(x + 1, y + 1);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //S
+    newCoords = checkAdjacentCell(x + 1, y);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //SW
+    newCoords = checkAdjacentCell(x + 1, y - 1);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //W
+    newCoords = checkAdjacentCell(x, y - 1);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
+
+    //NW
+    newCoords = checkAdjacentCell(x - 1, y - 1);
+    if (newCoords) checkList.push(newCoords);
+    newCoords = undefined;
   }
-  return adjMines;
 }
 
+function checkAdjacentCell(cellXOffset, cellYOffset) {
+  if (
+    board[cellXOffset][cellYOffset] === "B" ||
+    board[cellXOffset][cellYOffset] === "C"
+  ) {
+    //Empty for now but needed for 3d minesweeper!
+  } else {
+    if (board[cellXOffset][cellYOffset] !== 0) {
+      document.getElementById(
+        `R${cellXOffset}C${cellYOffset}`
+      ).style.backgroundColor = "red";
+    } else {
+      board[cellXOffset][cellYOffset] = "C";
+      document.getElementById(
+        `R${cellXOffset}C${cellYOffset}`
+      ).style.backgroundColor = "lightblue";
+      return [cellXOffset, cellYOffset];
+    }
+  }
+}
 function render() {
   renderBoard();
 }
@@ -198,12 +201,34 @@ function render() {
 function renderBoard() {}
 //! EVENT LISTENERS
 
-function handleClick() {
+function handleClick(e) {
   //handleClick should only make changes to the board data model.
   //after, render() is called to visually update the grid
 
-  render();
+  //These values come from my div id's eg R5C8
+  let clickedRowIndex = Number(e.target.dataset.row);
+  let clickedColIndex = Number(e.target.dataset.col);
+
+  //check if cell is a mine, if so end the game
+  if (board[clickedRowIndex][clickedColIndex] === "X") {
+    return alert("BOOM");
+  }
+  //check if cell contains number that is not 0, ie, is adjacent to atleast 1 mine;
+  if (board[clickedRowIndex][clickedColIndex] !== 0) {
+    document.getElementById(
+      `R${clickedRowIndex}C${clickedColIndex}`
+    ).style.backgroundColor = "red";
+  }
+  //if cell is empty call checkAllAdjacent to check adjacent cells
+  if (board[clickedRowIndex][clickedColIndex] === 0) {
+    checkAllAdjacent(clickedRowIndex, clickedColIndex);
+  }
+  //once changes have been made to the board model, call render to render the changes
 }
 //! GAME
 init();
 console.log(board);
+
+document.querySelector("button").addEventListener("click", () => {
+  console.log(board);
+});
