@@ -7,7 +7,7 @@ const chosenNumberOfMines = 10;
 //! STATE VARIABLES
 
 let board; //2d array board data model
-let gameOnEnd; //null if still playing, 1 if board revealed, -1 if mine hit
+let gameState; //null if still playing, 1 if board revealed, -1 if mine hit
 
 //! CACHED ELEMENTS
 
@@ -16,6 +16,7 @@ const grid = document.getElementById("grid");
 
 //! FUNCTIONS
 function init() {
+  gameState = "active";
   //initialize board data model
   //We make the board 2 cols and 2 rows greater than player input, these will be 'borders'
   board = [];
@@ -30,6 +31,7 @@ function init() {
   //To access a cell use x,y index eg board[rowIndex][colIndex]
 
   createBoard();
+  render();
 }
 
 function createBoard() {
@@ -56,6 +58,7 @@ function createBoard() {
         div.setAttribute("data-row", r);
         div.setAttribute("data-col", c);
         div.addEventListener("click", handleClick);
+        div.addEventListener("contextmenu", handleRightClick);
         grid.appendChild(div);
       }
     }
@@ -83,8 +86,6 @@ function addMines() {
     ) {
       board[rowIndex][colIndex] = "X";
       minesToSet--;
-      //this line belongs in the render function
-      document.getElementById(`R${rowIndex}C${colIndex}`).innerHTML = "X";
     }
   }
 }
@@ -106,9 +107,7 @@ function addNumbers() {
         if (board[r + 1][c - 1] === "X") adjMines++;
         if (board[r + 1][c] === "X") adjMines++;
         if (board[r + 1][c + 1] === "X") adjMines++;
-        board[r][c] = adjMines;
-        //this line should move to render()
-        document.getElementById(`R${r}C${c}`).innerHTML = adjMines;
+        board[r][c] = -adjMines;
       }
     }
   }
@@ -118,7 +117,6 @@ function checkAllAdjacent(r, c) {
   //This will be our list of cells to check
   let checkList = [[r, c]];
 
-  document.getElementById(`R${r}C${c}`).style.backgroundColor = "lightblue";
   //Set already checked cells to 'C', to avoid rechecking
   board[r][c] = "C";
 
@@ -182,14 +180,11 @@ function checkAdjacentCell(cellXOffset, cellYOffset) {
     //Empty for now but needed for 3d minesweeper!
   } else {
     if (board[cellXOffset][cellYOffset] !== 0) {
-      document.getElementById(
-        `R${cellXOffset}C${cellYOffset}`
-      ).style.backgroundColor = "red";
+      board[cellXOffset][cellYOffset] = Math.abs(
+        board[cellXOffset][cellYOffset]
+      );
     } else {
       board[cellXOffset][cellYOffset] = "C";
-      document.getElementById(
-        `R${cellXOffset}C${cellYOffset}`
-      ).style.backgroundColor = "lightblue";
       return [cellXOffset, cellYOffset];
     }
   }
@@ -198,7 +193,55 @@ function render() {
   renderBoard();
 }
 
-function renderBoard() {}
+function renderBoard() {
+  //iterate over our board model, ignore border rows and cols ('B')
+  for (let r = 1; r < board.length - 1; r++) {
+    for (let c = 1; c < board[r].length - 1; c++) {
+      const cell = document.getElementById(`R${r}C${c}`);
+      //If cell has been checked
+      if (board[r][c] === "C") {
+        cell.style.border = "1px solid rgb(72, 72, 72)";
+      }
+      //If cell is number
+      if (board[r][c] > 0) {
+        cell.innerHTML = board[r][c];
+        cell.style.border = "1px solid rgb(72, 72, 72)";
+        switch (board[r][c]) {
+          case 1:
+            cell.style.color = "blue";
+            break;
+          case 2:
+            cell.style.color = "green";
+            break;
+          case 3:
+            cell.style.color = "red";
+            break;
+          case 4:
+            cell.style.color = "purple";
+            break;
+          case 5:
+            cell.style.color = "maroon";
+            break;
+          case 6:
+            cell.style.color = "turquoise";
+            break;
+          case 7:
+            cell.style.color = "black";
+            break;
+        }
+      }
+      if (board[r][c] === "!") {
+        cell.innerHTML = board[r][c];
+      }
+      if (gameState === "lose") {
+        if (board[r][c] === "X") {
+          cell.innerHTML = board[r][c];
+          cell.style.backgroundColor = "red";
+        }
+      }
+    }
+  }
+}
 //! EVENT LISTENERS
 
 function handleClick(e) {
@@ -206,28 +249,49 @@ function handleClick(e) {
   //after, render() is called to visually update the grid
 
   //These values come from my div id's eg R5C8
-  let clickedRowIndex = Number(e.target.dataset.row);
-  let clickedColIndex = Number(e.target.dataset.col);
+  const clickedRowIndex = Number(e.target.dataset.row);
+  const clickedColIndex = Number(e.target.dataset.col);
 
-  //check if cell is a mine, if so end the game
-  if (board[clickedRowIndex][clickedColIndex] === "X") {
-    return alert("BOOM");
+  if (gameState === "active") {
+    if (board[clickedRowIndex][clickedColIndex] === "X") {
+      //check if cell is a mine, if so end the game
+      gameState = "lose";
+      //!LAZY
+      document.getElementById(
+        `R${clickedRowIndex}C${clickedColIndex}`
+      ).innerHTML = board[clickedRowIndex][clickedColIndex];
+      document.getElementById(
+        `R${clickedRowIndex}C${clickedColIndex}`
+      ).style.backgroundColor = "red";
+    }
+    //check if cell contains number that is not 0, ie, is adjacent to atleast 1 mine;
+    if (board[clickedRowIndex][clickedColIndex] !== 0) {
+      board[clickedRowIndex][clickedColIndex] = Math.abs(
+        board[clickedRowIndex][clickedColIndex]
+      );
+    }
+    //if cell is empty call checkAllAdjacent to check adjacent cells
+    if (board[clickedRowIndex][clickedColIndex] === 0) {
+      checkAllAdjacent(clickedRowIndex, clickedColIndex);
+    }
+    //once changes have been made to the board model, call render to render the changes
+    render();
   }
-  //check if cell contains number that is not 0, ie, is adjacent to atleast 1 mine;
-  if (board[clickedRowIndex][clickedColIndex] !== 0) {
-    document.getElementById(
-      `R${clickedRowIndex}C${clickedColIndex}`
-    ).style.backgroundColor = "red";
+}
+function handleRightClick(e) {
+  e.preventDefault();
+  const clickedRowIndex = Number(e.target.dataset.row);
+  const clickedColIndex = Number(e.target.dataset.col);
+  const cell = document.getElementById(
+    `R${clickedRowIndex}C${clickedColIndex}`
+  );
+  //Toggle flag
+  if (board[clickedRowIndex][clickedColIndex] !== "C") {
+    cell.innerHTML = "F";
   }
-  //if cell is empty call checkAllAdjacent to check adjacent cells
-  if (board[clickedRowIndex][clickedColIndex] === 0) {
-    checkAllAdjacent(clickedRowIndex, clickedColIndex);
-  }
-  //once changes have been made to the board model, call render to render the changes
 }
 //! GAME
 init();
-console.log(board);
 
 document.querySelector("button").addEventListener("click", () => {
   console.log(board);
