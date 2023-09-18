@@ -12,6 +12,9 @@ const customGame = document.getElementById("custom-start");
 const menuContainer = document.getElementById("menu-container");
 const gameContainer = document.getElementById("game-container");
 const backToMenu = document.getElementById("back");
+const careerGame = document.getElementById("career-start");
+const detailsContainer = document.getElementById("details-container");
+const userName = document.getElementById("user");
 
 //! CONSTANTS
 
@@ -28,12 +31,18 @@ class Cell {
   }
 }
 
+const playerObj = {
+  totalScore: 0,
+  careerLevel: 1,
+};
+
 //! STATE VARIABLES
 
 //Player inputs
-let chosenBoardCols = 20;
-let chosenBoardRows = 20;
-let chosenNumberOfMines = 30;
+let user;
+let chosenBoardCols;
+let chosenBoardRows;
+let chosenNumberOfMines;
 
 let board; //2d array board data model
 let gameState; //active, win, lose
@@ -41,6 +50,7 @@ let cellsToClear;
 let flagsLeft;
 let timerActive = false;
 let time = 0;
+let careerModeActive = false;
 
 //! FUNCTIONS
 
@@ -278,6 +288,16 @@ function renderBoard() {
   }
 }
 
+function renderPlayerDetails(level, score, totalScore) {
+  //Append player details to html
+  document.getElementById("career-level").innerHTML = `LEVEL: ${level}`;
+  document.getElementById("player-score").innerHTML = `SCORE: ${score}`;
+
+  document.getElementById(
+    "player-total-score"
+  ).innerHTML = `TOTAL SCORE: ${totalScore}`;
+}
+
 function checkWinConditions() {
   let checkedCells = 0;
   for (let r = 1; r < board.length - 1; r++) {
@@ -287,13 +307,27 @@ function checkWinConditions() {
       }
     }
   }
-  console.log(checkedCells);
-  console.log(cellsToClear);
+
   if (gameState === "active") {
     if (cellsToClear === checkedCells) {
       gameState = "win";
       stopTimer();
       console.log("won");
+      //handle career progression
+      if (careerModeActive) {
+        console.log(chosenNumberOfMines);
+        console.log(time);
+        let score = Math.floor((chosenNumberOfMines * 1000) / time);
+        console.log(score);
+        playerObj.totalScore += score;
+
+        renderPlayerDetails(playerObj.careerLevel, score, playerObj.totalScore);
+        playerObj.careerLevel++;
+        if (localStorage) {
+          localStorage.setItem(user, JSON.stringify(playerObj));
+          console.log("data saved");
+        } else alert("No access to local storage");
+      }
     }
   }
 }
@@ -327,10 +361,66 @@ function stopTimer() {
 face.addEventListener("click", handleRestart);
 customGame.addEventListener("click", handleCustomStart);
 backToMenu.addEventListener("click", handleBackToMenu);
+careerGame.addEventListener("click", handleCareerStart);
+
+function handleCareerStart() {
+  //Set user to player input
+  user = userName.value;
+  console.log(user);
+  //Add player detail html elemnts
+  const careerLevelDiv = document.createElement("div");
+  careerLevelDiv.setAttribute("id", "career-level");
+  detailsContainer.appendChild(careerLevelDiv);
+
+  const playerScoreDiv = document.createElement("div");
+  playerScoreDiv.setAttribute("id", "player-score");
+  detailsContainer.appendChild(playerScoreDiv);
+
+  const playerTotalScore = document.createElement("div");
+  playerTotalScore.setAttribute("id", "player-total-score");
+  detailsContainer.appendChild(playerTotalScore);
+
+  //Load data if present
+  careerModeActive = true;
+  let loaded = JSON.parse(localStorage.getItem(user));
+  if (loaded) {
+    playerObj.careerLevel = loaded.careerLevel;
+    playerObj.totalScore = loaded.totalScore;
+    console.log(loaded);
+  } else {
+    playerObj.careerLevel = 1;
+    playerObj.totalScore = 0;
+  }
+
+  //clear html grid
+  while (grid.hasChildNodes()) {
+    grid.removeChild(grid.firstChild);
+  }
+  renderPlayerDetails(playerObj.careerLevel, 0, playerObj.totalScore);
+
+  chosenBoardRows = 10 + playerObj.careerLevel * 2;
+  chosenBoardCols = 10 + playerObj.careerLevel * 4;
+  // chosenNumberOfMines = Math.floor(
+  //   chosenBoardRows * chosenBoardCols * (0.1 + playerObj.careerLevel / 100)
+  // );
+  chosenNumberOfMines = 4;
+  flagsLeft = chosenNumberOfMines;
+  cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
+  console.log(chosenNumberOfMines);
+  menuContainer.style.display = "none";
+  gameContainer.style.display = "flex";
+
+  init();
+}
 
 function handleBackToMenu() {
+  careerModeActive = false;
   menuContainer.style.display = "flex";
   gameContainer.style.display = "none";
+
+  while (detailsContainer.hasChildNodes()) {
+    detailsContainer.removeChild(detailsContainer.firstChild);
+  }
 }
 function handleCustomStart() {
   while (grid.hasChildNodes()) {
@@ -342,10 +432,6 @@ function handleCustomStart() {
   chosenNumberOfMines = Number(mineInput.value);
   flagsLeft = chosenNumberOfMines;
   cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
-
-  console.log(chosenBoardCols);
-  console.log(chosenBoardRows);
-  console.log(chosenNumberOfMines);
 
   menuContainer.style.display = "none";
   gameContainer.style.display = "flex";
@@ -421,5 +507,4 @@ function handleRestart() {
   time = 0;
   init();
 }
-
-//! GAME
+//  localStorage.clear();

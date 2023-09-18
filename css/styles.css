@@ -23,6 +23,10 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  border-top: 2px solid rgb(223, 223, 223);
+  border-left: 2px solid rgb(223, 223, 223);
+  border-right: 2px solid rgb(72, 72, 72);
+  border-bottom: 2px solid rgb(72, 72, 72);
 }
 
 #menu > div {
@@ -38,6 +42,14 @@ body {
 }
 
 /* GAME CSS */
+#details-container {
+  display: flex;
+  justify-content: center;
+}
+
+#details-container > div {
+  margin: 3vmin 12vmin;
+}
 #game-container {
   flex-direction: column;
   justify-content: center;
