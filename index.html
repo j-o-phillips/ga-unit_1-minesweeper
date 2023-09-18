@@ -4,13 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./css/styles.css" />
-    <script src="./js/scripts.js" defer></script>
+    <script src="./js/index.js" defer></script>
     <title>Minesweeper</title>
   </head>
   <body>
     <header></header>
-    <div id="container">
-      <section id="grid"></section>
+    <div id="page-container">
+      <div id="container">
+        <section id="grid-header">
+          <div class="header-item">000</div>
+          <div class="header-item" id="face-box">
+            <div id="face"></div>
+          </div>
+          <div class="header-item">000</div>
+        </section>
+        <section id="grid"></section>
+      </div>
     </div>
     <button>log board</button>
   </body>
