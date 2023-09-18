@@ -1,6 +1,6 @@
 //! CONSTANTS
 
-const chosenBoardCols = 20;
+const chosenBoardCols = 12;
 const chosenBoardRows = 20;
 const chosenNumberOfMines = 40;
 

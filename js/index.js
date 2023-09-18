@@ -1,9 +1,10 @@
 //! CONSTANTS
 
 //Player inputs
-const chosenBoardCols = 20;
-const chosenBoardRows = 20;
-const chosenNumberOfMines = 30;
+const chosenBoardCols = 12;
+const chosenBoardRows = 12;
+const chosenNumberOfMines = 15;
+
 //Cell class
 class Cell {
   constructor(rowIndex, colIndex, value) {
@@ -20,18 +21,23 @@ class Cell {
 //! STATE VARIABLES
 
 let board; //2d array board data model
-let gameState; //null if still playing, 1 if board revealed, -1 if mine hit
+let gameState; //active, win, lose
+let cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
+let flagsLeft = chosenNumberOfMines;
+let timerActive = false;
+let time = 0;
 
 //! CACHED ELEMENTS
 
 const container = document.getElementById("container");
 const grid = document.getElementById("grid");
 const face = document.getElementById("face-box");
+const mineDisplay = document.getElementById("mine-display");
+const timeDisplay = document.getElementById("time-display");
 
 //! FUNCTIONS
 
 function init() {
-  face.addEventListener("click", handleRefresh);
   gameState = "active";
   //initialize board data model
   //We make the board 2 cols and 2 rows greater than player input, these will be 'borders'
@@ -197,9 +203,14 @@ function checkAdjacentCell(cellXOffset, cellYOffset) {
   }
 }
 function render() {
+  renderHeader();
   renderBoard();
 }
 
+function renderHeader() {
+  mineDisplay.innerHTML = ("00" + flagsLeft).slice(-3);
+  timeDisplay.innerHTML = ("00" + time).slice(-3);
+}
 function renderBoard() {
   //iterate over our board model, ignore border rows and cols
   for (let r = 1; r < board.length - 1; r++) {
@@ -209,6 +220,7 @@ function renderBoard() {
       if (board[r][c].isChecked === true) {
         cell.style.border = "1px solid rgb(72, 72, 72)";
       }
+
       //If cell is flagged
       if (board[r][c].isFlagged === true) {
         cell.innerHTML = "F";
@@ -221,7 +233,6 @@ function renderBoard() {
       //If cell.value is number greater than 0 ie has adj mines
       if (board[r][c].value !== 0 && board[r][c].isChecked === true) {
         cell.innerText = board[r][c].value;
-        console.log(cell.innerText);
         cell.style.border = "1px solid rgb(72, 72, 72)";
         switch (board[r][c].value) {
           case 1:
@@ -253,17 +264,70 @@ function renderBoard() {
           cell.innerHTML = "!";
           cell.style.backgroundColor = "red";
           cell.style.border = "1px solid rgb(72, 72, 72)";
+          stopTimer();
         }
       }
     }
   }
 }
 
+function checkWinConditions() {
+  let checkedCells = 0;
+  for (let r = 1; r < board.length - 1; r++) {
+    for (let c = 1; c < board[r].length - 1; c++) {
+      if (board[r][c].isChecked === true) {
+        checkedCells++;
+      }
+    }
+  }
+  console.log(checkedCells);
+  console.log(cellsToClear);
+  if (gameState === "active") {
+    if (cellsToClear === checkedCells) {
+      gameState = "win";
+      stopTimer();
+      console.log("won");
+    }
+  }
+}
+
+function checkFlags() {
+  flagsLeft = chosenNumberOfMines;
+  for (let r = 1; r < board.length - 1; r++) {
+    for (let c = 1; c < board[r].length - 1; c++) {
+      if (board[r][c].isFlagged === true) flagsLeft--;
+    }
+  }
+}
+
+//Timing functions
+let timer;
+function startTimer() {
+  if (!timerActive) {
+    timer = setInterval(() => {
+      time++;
+      renderHeader();
+    }, 1000);
+  }
+}
+
+function stopTimer() {
+  clearInterval(timer);
+}
+
 //! EVENT LISTENERS
+
+face.addEventListener("click", handleRestart);
 
 function handleClick(e) {
   //handleClick should only make changes to the board data model.
   //after, render() is called to visually update the grid
+
+  //Start timer
+  if (!timerActive) {
+    startTimer();
+    timerActive = true;
+  }
 
   //These values come from my div id's eg R5C8
   const clickedRowIndex = Number(e.target.dataset.row);
@@ -285,27 +349,43 @@ function handleClick(e) {
     }
     //once changes have been made to the board model, call render to render the changes
     render();
+    checkWinConditions();
   }
 }
 function handleRightClick(e) {
   e.preventDefault();
-  const clickedRowIndex = Number(e.target.dataset.row);
-  const clickedColIndex = Number(e.target.dataset.col);
-  console.log(clickedRowIndex, clickedColIndex);
-  //Toggle flag
-  if (board[clickedRowIndex][clickedColIndex].isChecked === false) {
-    if (board[clickedRowIndex][clickedColIndex].isFlagged === false) {
-      board[clickedRowIndex][clickedColIndex].isFlagged = true;
-    } else {
-      board[clickedRowIndex][clickedColIndex].isFlagged = false;
-    }
+  //start timer
+  if (!timerActive) {
+    timerActive = true;
+    startTimer();
   }
 
+  const clickedRowIndex = Number(e.target.dataset.row);
+  const clickedColIndex = Number(e.target.dataset.col);
+
+  //Toggle flag
+  if (gameState === "active") {
+    if (board[clickedRowIndex][clickedColIndex].isChecked === false) {
+      if (board[clickedRowIndex][clickedColIndex].isFlagged === false) {
+        board[clickedRowIndex][clickedColIndex].isFlagged = true;
+      } else {
+        board[clickedRowIndex][clickedColIndex].isFlagged = false;
+      }
+    }
+  }
+  checkFlags();
   render();
 }
 
-function handleRefresh() {
-  console.log("refresh");
+function handleRestart() {
+  //Remove all divs from html grid
+  while (grid.hasChildNodes()) {
+    grid.removeChild(grid.firstChild);
+  }
+  flagsLeft = chosenNumberOfMines;
+  timerActive = false;
+  time = 0;
+  init();
 }
 
 //! GAME

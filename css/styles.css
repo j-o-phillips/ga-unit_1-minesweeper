@@ -75,3 +75,7 @@ body {
   background-color: rgb(166, 166, 166);
   text-align: center;
 }
+
+.altered {
+  border: 1px solid rgb(72, 72, 72);
+}
