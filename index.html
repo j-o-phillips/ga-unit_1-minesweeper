@@ -9,7 +9,7 @@
   </head>
   <body>
     <header></header>
-    <div id="page-container">
+    <div id="game-container">
       <div id="container">
         <section id="grid-header">
           <div class="header-item" id="mine-display">000</div>
@@ -20,7 +20,25 @@
         </section>
         <section id="grid"></section>
       </div>
+      <button id="back">Menu</button>
     </div>
-    <button>log board</button>
+    <div id="menu-container">
+      <div id="menu">
+        <div>
+          <label for="user">User</label>
+          <input type="text" id="user" />
+        </div>
+        <button>Career</button>
+        <div>
+          <label for="row">Rows:</label>
+          <input type="number" name="" id="row" min="12" max="40" value="12" />
+          <label for="col">Columns:</label>
+          <input type="number" name="" id="col" min="12" max="60" value="12" />
+          <label for="mine">Mines:</label>
+          <input type="number" name="" id="mine" min="1" value="20" />
+        </div>
+        <button id="custom-start">Custom</button>
+      </div>
+    </div>
   </body>
 </html>

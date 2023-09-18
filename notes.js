@@ -34,3 +34,8 @@
 //     background-color: rgb(166, 166, 166);
 //     text-align: center;
 //   }
+
+cell.style.borderTop = "1px solid rgb(72, 72, 72)";
+cell.style.borderLeft = "1px solid rgb(72, 72, 72)";
+cell.style.borderBottom = "1px solid rgb(223, 223, 223)";
+cell.style.borderRight = "1px solid rgb(223, 223, 223)";

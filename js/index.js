@@ -1,9 +1,19 @@
-//! CONSTANTS
+//! CACHED ELEMENTS
 
-//Player inputs
-const chosenBoardCols = 12;
-const chosenBoardRows = 12;
-const chosenNumberOfMines = 15;
+const container = document.getElementById("container");
+const grid = document.getElementById("grid");
+const face = document.getElementById("face-box");
+const mineDisplay = document.getElementById("mine-display");
+const timeDisplay = document.getElementById("time-display");
+const rowInput = document.getElementById("row");
+const colInput = document.getElementById("col");
+const mineInput = document.getElementById("mine");
+const customGame = document.getElementById("custom-start");
+const menuContainer = document.getElementById("menu-container");
+const gameContainer = document.getElementById("game-container");
+const backToMenu = document.getElementById("back");
+
+//! CONSTANTS
 
 //Cell class
 class Cell {
@@ -20,20 +30,17 @@ class Cell {
 
 //! STATE VARIABLES
 
+//Player inputs
+let chosenBoardCols = 20;
+let chosenBoardRows = 20;
+let chosenNumberOfMines = 30;
+
 let board; //2d array board data model
 let gameState; //active, win, lose
-let cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
-let flagsLeft = chosenNumberOfMines;
+let cellsToClear;
+let flagsLeft;
 let timerActive = false;
 let time = 0;
-
-//! CACHED ELEMENTS
-
-const container = document.getElementById("container");
-const grid = document.getElementById("grid");
-const face = document.getElementById("face-box");
-const mineDisplay = document.getElementById("mine-display");
-const timeDisplay = document.getElementById("time-display");
 
 //! FUNCTIONS
 
@@ -318,6 +325,33 @@ function stopTimer() {
 //! EVENT LISTENERS
 
 face.addEventListener("click", handleRestart);
+customGame.addEventListener("click", handleCustomStart);
+backToMenu.addEventListener("click", handleBackToMenu);
+
+function handleBackToMenu() {
+  menuContainer.style.display = "flex";
+  gameContainer.style.display = "none";
+}
+function handleCustomStart() {
+  while (grid.hasChildNodes()) {
+    grid.removeChild(grid.firstChild);
+  }
+  //! Add some validation
+  chosenBoardRows = Number(rowInput.value);
+  chosenBoardCols = Number(colInput.value);
+  chosenNumberOfMines = Number(mineInput.value);
+  flagsLeft = chosenNumberOfMines;
+  cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
+
+  console.log(chosenBoardCols);
+  console.log(chosenBoardRows);
+  console.log(chosenNumberOfMines);
+
+  menuContainer.style.display = "none";
+  gameContainer.style.display = "flex";
+
+  init();
+}
 
 function handleClick(e) {
   //handleClick should only make changes to the board data model.
@@ -389,9 +423,3 @@ function handleRestart() {
 }
 
 //! GAME
-
-init();
-
-document.querySelector("button").addEventListener("click", () => {
-  console.log(board);
-});
