@@ -11,12 +11,15 @@ const mineInput = document.getElementById("mine");
 const customGame = document.getElementById("custom-start");
 const menuContainer = document.getElementById("menu-container");
 const gameContainer = document.getElementById("game-container");
-const backToMenu = document.getElementById("back");
+const backToMenu = document.getElementById("back-to-menu");
+const threeDBackToMenu = document.getElementById("threeD-back-to-menu");
 const careerGame = document.getElementById("career-start");
 const detailsContainer = document.getElementById("details-container");
 const userName = document.getElementById("user");
+const custom3dGame = document.getElementById("custom-3d-start");
 
 //Cube faces
+const threeDGameContainer = document.getElementById("threeD-game-container");
 const cubeContainer = document.getElementById("cube-container");
 const cubeFront = document.getElementById("cube-front");
 const cubeRight = document.getElementById("cube-right");
@@ -50,7 +53,7 @@ const playerObj = {
 
 //Player inputs
 let user;
-let threeDMode = true;
+let threeDMode = false;
 let cubeSize;
 let chosenBoardCols = 20;
 let chosenBoardRows = 20;
@@ -108,6 +111,9 @@ function createBoard() {
     grid.style.gridTemplateRows = `repeat(${chosenBoardRows}, 2.3vmin)`;
   }
   if (threeDMode) {
+    //! PLACEHOLDER
+    chosenBoardCols = 20;
+    chosenBoardRows = 20;
     cubeFront.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
     cubeFront.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
 
@@ -404,7 +410,13 @@ function checkAdjacentCell(cellXOffset, cellYOffset) {
   }
 }
 function render() {
+  renderHeader();
   renderBoard();
+}
+
+function renderHeader() {
+  mineDisplay.innerHTML = ("00" + flagsLeft).slice(-3);
+  timeDisplay.innerHTML = ("00" + time).slice(-3);
 }
 
 function renderBoard() {
@@ -526,7 +538,7 @@ function startTimer() {
   if (!timerActive) {
     timer = setInterval(() => {
       time++;
-      //   renderHeader();
+      renderHeader();
     }, 1000);
   }
 }
@@ -536,6 +548,13 @@ function stopTimer() {
 }
 
 //! EVENT LISTENERS
+
+face.addEventListener("click", handleRestart);
+customGame.addEventListener("click", handleCustomStart);
+backToMenu.addEventListener("click", handleBackToMenu);
+threeDBackToMenu.addEventListener("click", handleBackToMenu);
+careerGame.addEventListener("click", handleCareerStart);
+custom3dGame.addEventListener("click", handleCustom3DStart);
 
 function handleCareerStart() {
   //Set user to player input
@@ -589,13 +608,39 @@ function handleCareerStart() {
 
 function handleBackToMenu() {
   careerModeActive = false;
+  threeDMode = false;
   menuContainer.style.display = "flex";
   gameContainer.style.display = "none";
+  threeDGameContainer.style.display = "none";
 
   while (detailsContainer.hasChildNodes()) {
     detailsContainer.removeChild(detailsContainer.firstChild);
   }
+
+  while (grid.hasChildNodes()) {
+    grid.removeChild(grid.firstChild);
+  }
+
+  while (cubeFront.hasChildNodes()) {
+    cubeFront.removeChild(cubeFront.firstChild);
+  }
+  while (cubeRight.hasChildNodes()) {
+    cubeRight.removeChild(cubeRight.firstChild);
+  }
+  while (cubeBack.hasChildNodes()) {
+    cubeBack.removeChild(cubeBack.firstChild);
+  }
+  while (cubeLeft.hasChildNodes()) {
+    cubeLeft.removeChild(cubeLeft.firstChild);
+  }
+  while (cubeTop.hasChildNodes()) {
+    cubeTop.removeChild(cubeTop.firstChild);
+  }
+  while (cubeBottom.hasChildNodes()) {
+    cubeBottom.removeChild(cubeBottom.firstChild);
+  }
 }
+
 function handleCustomStart() {
   while (grid.hasChildNodes()) {
     grid.removeChild(grid.firstChild);
@@ -609,6 +654,17 @@ function handleCustomStart() {
 
   menuContainer.style.display = "none";
   gameContainer.style.display = "flex";
+
+  init();
+}
+
+function handleCustom3DStart() {
+  threeDMode = true;
+  menuContainer.style.display = "none";
+  threeDGameContainer.style.display = "flex";
+  chosenNumberOfMines = Number(mineInput.value);
+  flagsLeft = chosenNumberOfMines;
+  cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
 
   init();
 }
@@ -677,14 +733,11 @@ function handleRestart() {
     grid.removeChild(grid.firstChild);
   }
   flagsLeft = chosenNumberOfMines;
+  stopTimer();
   timerActive = false;
   time = 0;
   init();
 }
-init();
-document.getElementById("log-board").addEventListener("click", () => {
-  console.log(board);
-});
 
 //! CUBE CODE
 
