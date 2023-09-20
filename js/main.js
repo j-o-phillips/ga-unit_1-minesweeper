@@ -2,21 +2,31 @@
 
 const container = document.getElementById("container");
 const grid = document.getElementById("grid");
-const face = document.getElementById("face-box");
+const face = document.getElementById("twoD-face-box");
+const threeDFace = document.getElementById("threeD-face-box");
 const mineDisplay = document.getElementById("mine-display");
 const timeDisplay = document.getElementById("time-display");
+const threeDMineDisplay = document.getElementById("threeD-mine-display");
+const threeDTimeDisplay = document.getElementById("threeD-time-display");
 const rowInput = document.getElementById("row");
 const colInput = document.getElementById("col");
 const mineInput = document.getElementById("mine");
 const customGame = document.getElementById("custom-start");
 const menuContainer = document.getElementById("menu-container");
 const gameContainer = document.getElementById("game-container");
-const backToMenu = document.getElementById("back");
+const backToMenu = document.getElementById("back-to-menu");
+const threeDBackToMenu = document.getElementById("threeD-back-to-menu");
 const careerGame = document.getElementById("career-start");
 const detailsContainer = document.getElementById("details-container");
 const userName = document.getElementById("user");
+const custom3dGame = document.getElementById("custom-3d-start");
+const nextLevel = document.getElementById("next-level");
+const rotateLeft = document.getElementById("rotate-left");
+const rotateRight = document.getElementById("rotate-right");
 
 //Cube faces
+const threeDGameContainer = document.getElementById("threeD-game-container");
+const cube = document.getElementById("cube");
 const cubeContainer = document.getElementById("cube-container");
 const cubeFront = document.getElementById("cube-front");
 const cubeRight = document.getElementById("cube-right");
@@ -50,10 +60,10 @@ const playerObj = {
 
 //Player inputs
 let user;
-let threeDMode = true;
+let threeDMode = false;
 let cubeSize;
-let chosenBoardCols = 20;
-let chosenBoardRows = 20;
+let chosenBoardCols;
+let chosenBoardRows;
 let threeDBoardRows = 20;
 let threeDBoardCols = 20 * 4;
 let chosenNumberOfMines = 30;
@@ -73,33 +83,20 @@ function init() {
   //initialize board data model
   //We make the board 2 cols and 2 rows greater than player input, these will be 'borders'
   board = [];
-  if (!threeDMode) {
-    for (let r = 0; r < chosenBoardRows + 2; r++) {
-      let boardRow = [];
-      for (let c = 0; c < chosenBoardCols + 2; c++) {
-        boardRow.push(new Cell(r, c, 0));
-      }
-      board.push(boardRow);
+  let cols = threeDMode ? threeDBoardCols : chosenBoardCols;
+  let rows = threeDMode ? threeDBoardRows : chosenBoardRows;
+  for (let r = 0; r < rows + 2; r++) {
+    let boardRow = [];
+    for (let c = 0; c < cols + 2; c++) {
+      boardRow.push(new Cell(r, c, 0));
     }
-  }
-  if (threeDMode) {
-    for (let r = 0; r < threeDBoardRows + 2; r++) {
-      let boardRow = [];
-      for (let c = 0; c < threeDBoardCols + 2; c++) {
-        boardRow.push(new Cell(r, c, 0));
-      }
-      board.push(boardRow);
-    }
+    board.push(boardRow);
   }
   //Board data model created as 2d array. Console.log(board) lets you visualize the board as it is printed out
   //To access a cell use x,y index eg board[rowIndex][colIndex]
-
-  setCSSProperties();
   createBoard();
   render();
 }
-
-function setCSSProperties() {}
 
 function createBoard() {
   //We add a grid sizes css to our grid from player input
@@ -108,23 +105,23 @@ function createBoard() {
     grid.style.gridTemplateRows = `repeat(${chosenBoardRows}, 2.3vmin)`;
   }
   if (threeDMode) {
-    cubeFront.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
-    cubeFront.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
+    cubeFront.style.gridTemplateColumns = `repeat(${20}, 20px)`;
+    cubeFront.style.gridTemplateRows = `repeat(${20}, 20px)`;
 
-    cubeRight.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
-    cubeRight.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
+    cubeRight.style.gridTemplateColumns = `repeat(${20}, 20px)`;
+    cubeRight.style.gridTemplateRows = `repeat(${20}, 20px)`;
 
-    cubeBack.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
-    cubeBack.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
+    cubeBack.style.gridTemplateColumns = `repeat(${20}, 20px)`;
+    cubeBack.style.gridTemplateRows = `repeat(${20}, 20px)`;
 
-    cubeLeft.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
-    cubeLeft.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
+    cubeLeft.style.gridTemplateColumns = `repeat(${20}, 20px)`;
+    cubeLeft.style.gridTemplateRows = `repeat(${20}, 20px)`;
 
-    cubeTop.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
-    cubeTop.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
+    cubeTop.style.gridTemplateColumns = `repeat(${20}, 20px)`;
+    cubeTop.style.gridTemplateRows = `repeat(${20}, 20px)`;
 
-    cubeBottom.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
-    cubeBottom.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
+    cubeBottom.style.gridTemplateColumns = `repeat(${20}, 20px)`;
+    cubeBottom.style.gridTemplateRows = `repeat(${20}, 20px)`;
   }
 
   //iterate through our board model and create div elements for each cell
@@ -192,16 +189,11 @@ function addMines() {
     let colIndex;
     let rowIndex;
     //Find random indexes
-    if (!threeDMode) {
-      colIndex = Math.floor(Math.random() * chosenBoardCols);
-      rowIndex = Math.floor(Math.random() * chosenBoardRows);
-    }
+    let cols = threeDMode ? threeDBoardCols : chosenBoardCols;
+    let rows = threeDMode ? threeDBoardRows : chosenBoardRows;
 
-    if (threeDMode) {
-      colIndex = Math.floor(Math.random() * threeDBoardCols);
-      rowIndex = Math.floor(Math.random() * chosenBoardRows);
-    }
-
+    colIndex = Math.floor(Math.random() * cols);
+    rowIndex = Math.floor(Math.random() * rows);
     // if cell is not already a mine , and is not a border cell , set it to be a mine
     if (
       board[rowIndex][colIndex].isMine === false &&
@@ -221,7 +213,8 @@ function addNumbers() {
       if (board[r][c].isMine === true) {
         console.log("found mine");
       } else {
-        //Border at start
+        //Borderlink conditions for 3d mode, checks must 'loop' around
+        //Borderlink at start
         let adjMines = 0;
         if (board[r - 1][c - 1].borderLink) {
           if (board[r - 1][board[r].length - 1].isMine === true) adjMines++;
@@ -234,8 +227,7 @@ function addNumbers() {
         if (board[r + 1][c - 1].borderLink) {
           if (board[r + 1][board[r].length - 1].isMine === true) adjMines++;
         }
-
-        //border at end
+        //borderlink at end
         if (board[r - 1][c + 1].borderLink) {
           if (board[r - 1][1].isMine === true) adjMines++;
         }
@@ -256,6 +248,7 @@ function addNumbers() {
         if (board[r + 1][c - 1].isMine === true) adjMines++;
         if (board[r + 1][c].isMine === true) adjMines++;
         if (board[r + 1][c + 1].isMine === true) adjMines++;
+        //Set our cell object value property to adjMines
         board[r][c].value = adjMines;
       }
     }
@@ -280,7 +273,7 @@ function checkAllAdjacent(r, c) {
     //we can then push those coords to our checklist to be checked next
     let newCoords;
 
-    //handle edges in 3d mode
+    //handle borderlinks in 3d mode
     if ((threeDMode && y === 1) || y === threeDBoardCols) {
       if (y === 1) {
         //N
@@ -352,6 +345,7 @@ function checkAllAdjacent(r, c) {
         newCoords = undefined;
       }
     } else {
+      //if no borderlinks ie not in 3d mode
       //N
       newCoords = checkAdjacentCell(x - 1, y);
       if (newCoords) checkList.push(newCoords);
@@ -403,8 +397,20 @@ function checkAdjacentCell(cellXOffset, cellYOffset) {
     }
   }
 }
+
+//? RENDER FUNCTIONS
+
 function render() {
+  renderHeader();
   renderBoard();
+}
+
+function renderHeader() {
+  mineDisplay.innerHTML = ("00" + flagsLeft).slice(-3);
+  timeDisplay.innerHTML = ("00" + time).slice(-3);
+
+  threeDMineDisplay.innerHTML = ("00" + flagsLeft).slice(-3);
+  threeDTimeDisplay.innerHTML = ("00" + time).slice(-3);
 }
 
 function renderBoard() {
@@ -459,6 +465,7 @@ function renderBoard() {
         if (board[r][c].isMine === true) {
           cell.innerHTML = "!";
           cell.style.backgroundColor = "red";
+          //add bomb image
           cell.style.border = "1px solid rgb(72, 72, 72)";
           stopTimer();
         }
@@ -468,7 +475,7 @@ function renderBoard() {
 }
 
 function renderPlayerDetails(level, score, totalScore) {
-  //Append player details to html
+  //Update player details
   document.getElementById("career-level").innerHTML = `LEVEL: ${level}`;
   document.getElementById("player-score").innerHTML = `SCORE: ${score}`;
 
@@ -476,6 +483,8 @@ function renderPlayerDetails(level, score, totalScore) {
     "player-total-score"
   ).innerHTML = `TOTAL SCORE: ${totalScore}`;
 }
+
+//? OTHER FUNCTIONS
 
 function checkWinConditions() {
   let checkedCells = 0;
@@ -491,21 +500,19 @@ function checkWinConditions() {
     if (cellsToClear === checkedCells) {
       gameState = "win";
       stopTimer();
-      console.log("won");
       //handle career progression
       if (careerModeActive) {
-        console.log(chosenNumberOfMines);
-        console.log(time);
+        if (time === 0) time = 1;
         let score = Math.floor((chosenNumberOfMines * 1000) / time);
-        console.log(score);
         playerObj.totalScore += score;
 
         renderPlayerDetails(playerObj.careerLevel, score, playerObj.totalScore);
         playerObj.careerLevel++;
         if (localStorage) {
           localStorage.setItem(user, JSON.stringify(playerObj));
-          console.log("data saved");
         } else alert("No access to local storage");
+
+        nextLevel.style.display = "block";
       }
     }
   }
@@ -526,7 +533,7 @@ function startTimer() {
   if (!timerActive) {
     timer = setInterval(() => {
       time++;
-      //   renderHeader();
+      renderHeader();
     }, 1000);
   }
 }
@@ -537,10 +544,21 @@ function stopTimer() {
 
 //! EVENT LISTENERS
 
+//Add misc event listeners
+face.addEventListener("click", handleRestart);
+threeDFace.addEventListener("click", handleRestart);
+customGame.addEventListener("click", handleCustomStart);
+backToMenu.addEventListener("click", handleBackToMenu);
+threeDBackToMenu.addEventListener("click", handleBackToMenu);
+careerGame.addEventListener("click", handleCareerStart);
+custom3dGame.addEventListener("click", handleCustom3DStart);
+nextLevel.addEventListener("click", handleNextLevel);
+rotateLeft.addEventListener("click", handleRotateLeft);
+rotateRight.addEventListener("click", handleRotateRight);
+
 function handleCareerStart() {
   //Set user to player input
   user = userName.value;
-  console.log(user);
   //Add player detail html elemnts
   const careerLevelDiv = document.createElement("div");
   careerLevelDiv.setAttribute("id", "career-level");
@@ -560,16 +578,11 @@ function handleCareerStart() {
   if (loaded) {
     playerObj.careerLevel = loaded.careerLevel;
     playerObj.totalScore = loaded.totalScore;
-    console.log(loaded);
   } else {
     playerObj.careerLevel = 1;
     playerObj.totalScore = 0;
   }
 
-  //clear html grid
-  while (grid.hasChildNodes()) {
-    grid.removeChild(grid.firstChild);
-  }
   renderPlayerDetails(playerObj.careerLevel, 0, playerObj.totalScore);
 
   chosenBoardRows = 10 + playerObj.careerLevel * 2;
@@ -580,26 +593,13 @@ function handleCareerStart() {
   chosenNumberOfMines = 4;
   flagsLeft = chosenNumberOfMines;
   cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
-  console.log(chosenNumberOfMines);
   menuContainer.style.display = "none";
   gameContainer.style.display = "flex";
 
   init();
 }
 
-function handleBackToMenu() {
-  careerModeActive = false;
-  menuContainer.style.display = "flex";
-  gameContainer.style.display = "none";
-
-  while (detailsContainer.hasChildNodes()) {
-    detailsContainer.removeChild(detailsContainer.firstChild);
-  }
-}
 function handleCustomStart() {
-  while (grid.hasChildNodes()) {
-    grid.removeChild(grid.firstChild);
-  }
   //! Add some validation
   chosenBoardRows = Number(rowInput.value);
   chosenBoardCols = Number(colInput.value);
@@ -613,6 +613,57 @@ function handleCustomStart() {
   init();
 }
 
+function handleCustom3DStart() {
+  threeDMode = true;
+  chosenNumberOfMines = Number(mineInput.value);
+  flagsLeft = chosenNumberOfMines;
+  cellsToClear = threeDBoardCols * threeDBoardRows - chosenNumberOfMines;
+
+  menuContainer.style.display = "none";
+  threeDGameContainer.style.display = "flex";
+
+  init();
+}
+
+function handleBackToMenu() {
+  careerModeActive = false;
+  threeDMode = false;
+  timerActive = false;
+  time = 0;
+  stopTimer();
+  menuContainer.style.display = "flex";
+  gameContainer.style.display = "none";
+  threeDGameContainer.style.display = "none";
+  nextLevel.style.display = "none";
+  //remove all cell div elements from html
+  while (detailsContainer.hasChildNodes()) {
+    detailsContainer.removeChild(detailsContainer.firstChild);
+  }
+
+  while (grid.hasChildNodes()) {
+    grid.removeChild(grid.firstChild);
+  }
+
+  while (cubeFront.hasChildNodes()) {
+    cubeFront.removeChild(cubeFront.firstChild);
+  }
+  while (cubeRight.hasChildNodes()) {
+    cubeRight.removeChild(cubeRight.firstChild);
+  }
+  while (cubeBack.hasChildNodes()) {
+    cubeBack.removeChild(cubeBack.firstChild);
+  }
+  while (cubeLeft.hasChildNodes()) {
+    cubeLeft.removeChild(cubeLeft.firstChild);
+  }
+  while (cubeTop.hasChildNodes()) {
+    cubeTop.removeChild(cubeTop.firstChild);
+  }
+  while (cubeBottom.hasChildNodes()) {
+    cubeBottom.removeChild(cubeBottom.firstChild);
+  }
+}
+
 function handleClick(e) {
   //handleClick should only make changes to the board data model.
   //after, render() is called to visually update the grid
@@ -623,7 +674,6 @@ function handleClick(e) {
     timerActive = true;
   }
 
-  //These values come from my div id's eg R5C8
   const clickedRowIndex = Number(e.target.dataset.row);
   const clickedColIndex = Number(e.target.dataset.col);
 
@@ -646,7 +696,9 @@ function handleClick(e) {
     checkWinConditions();
   }
 }
+
 function handleRightClick(e) {
+  //eg toggle flags
   e.preventDefault();
   //start timer
   if (!timerActive) {
@@ -676,46 +728,65 @@ function handleRestart() {
   while (grid.hasChildNodes()) {
     grid.removeChild(grid.firstChild);
   }
+  while (cubeFront.hasChildNodes()) {
+    cubeFront.removeChild(cubeFront.firstChild);
+  }
+  while (cubeRight.hasChildNodes()) {
+    cubeRight.removeChild(cubeRight.firstChild);
+  }
+  while (cubeBack.hasChildNodes()) {
+    cubeBack.removeChild(cubeBack.firstChild);
+  }
+  while (cubeLeft.hasChildNodes()) {
+    cubeLeft.removeChild(cubeLeft.firstChild);
+  }
+  while (cubeTop.hasChildNodes()) {
+    cubeTop.removeChild(cubeTop.firstChild);
+  }
+  while (cubeBottom.hasChildNodes()) {
+    cubeBottom.removeChild(cubeBottom.firstChild);
+  }
+  nextLevel.style.display = "none";
   flagsLeft = chosenNumberOfMines;
+  stopTimer();
   timerActive = false;
   time = 0;
   init();
 }
-init();
-document.getElementById("log-board").addEventListener("click", () => {
-  console.log(board);
-});
 
-//! CUBE CODE
+function handleNextLevel() {
+  console.log("next");
+  nextLevel.style.display = "none";
+  handleBackToMenu();
+  handleCareerStart();
+}
 
-const cube = document.getElementById("cube");
+//? ROTATE CUBE CODE
 
-const buttonFront = document.getElementById("front");
-buttonFront.addEventListener("click", () => {
-  cube.className = "cube show-front";
-});
+const classArray = [
+  "cube show-front",
+  "cube show-right",
+  "cube show-back",
+  "cube show-left",
+];
+let posIndex = 0;
 
-const buttonRight = document.getElementById("right");
-buttonRight.addEventListener("click", () => {
-  cube.className = "cube show-right";
-});
+function handleRotateLeft() {
+  if (posIndex === 0) {
+    posIndex = 3;
+    cube.className = classArray[posIndex];
+  } else {
+    posIndex--;
+    cube.className = classArray[posIndex];
+  }
+}
 
-const buttonBack = document.getElementById("back");
-buttonBack.addEventListener("click", () => {
-  cube.className = "cube show-back";
-});
-
-const buttonLeft = document.getElementById("left");
-buttonLeft.addEventListener("click", () => {
-  cube.className = "cube show-left";
-});
-
-const buttonTop = document.getElementById("top");
-buttonTop.addEventListener("click", () => {
-  cube.className = "cube show-top";
-});
-
-const buttonBottom = document.getElementById("bottom");
-buttonBottom.addEventListener("click", () => {
-  cube.className = "cube show-bottom";
-});
+function handleRotateRight() {
+  if (posIndex === 3) {
+    posIndex = 0;
+    cube.className = classArray[posIndex];
+  } else {
+    posIndex++;
+    cube.className = classArray[posIndex];
+  }
+}

@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./main.css" />
-    <script src="./main.js" defer></script>
+    <link rel="stylesheet" href="./css/main.css" />
+    <script src="./js/main.js" defer></script>
     <title>Minesweeper</title>
   </head>
   <body>
@@ -13,9 +13,9 @@
     <div id="game-container">
       <div id="details-container"></div>
       <div id="container">
-        <section id="grid-header">
+        <section class="header" id="grid-header">
           <div class="header-item" id="mine-display">000</div>
-          <div class="header-item" id="face-box">
+          <div class="header-item face-box" id="twoD-face-box">
             <div id="face"></div>
           </div>
           <div class="header-item" id="time-display">000</div>
@@ -23,9 +23,11 @@
         <section id="grid"></section>
       </div>
       <button id="back-to-menu">Menu</button>
+      <button id="next-level">Next Level</button>
     </div>
     <div id="menu-container">
       <div id="menu">
+        <h1>MINESWEEPER</h1>
         <div>
           <label for="user">User</label>
           <input type="text" id="user" />
@@ -39,17 +41,19 @@
           <label for="mine">Mines:</label>
           <input type="number" name="" id="mine" min="1" value="20" />
         </div>
-        <button id="custom-start">Custom 2D</button>
-        <div>
-          <label for="small-cube">small</label>
-          <input type="radio" id="small-cube" />
-          <label for="large-cube">large</label>
-          <input type="radio" id="large-cube" />
-        </div>
-        <button id="custom-3d-start">Custom 3D</button>
+        <button id="custom-start">Custom</button>
+
+        <button id="custom-3d-start">3D Mode</button>
       </div>
     </div>
     <div id="threeD-game-container">
+      <section class="header" id="threeD-grid-header">
+        <div class="header-item" id="threeD-mine-display">000</div>
+        <div class="header-item face-box" id="threeD-face-box">
+          <div id="threeD-face"></div>
+        </div>
+        <div class="header-item" id="threeD-time-display">000</div>
+      </section>
       <div id="cube-container">
         <div class="cube show-front" id="cube">
           <div class="cube-face cube-face-front" id="cube-front"></div>
@@ -59,14 +63,12 @@
           <div class="cube-face cube-face-top" id="cube-top"></div>
           <div class="cube-face cube-face-bottom" id="cube-bottom"></div>
         </div>
-        <button id="front">Front</button>
-        <button id="right">Right</button>
-        <button id="back">Back</button>
-        <button id="left">Left</button>
-        <button id="top">Top</button>
-        <button id="bottom">Bottom</button>
-        <button id="threeD-back-to-menu">Menu</button>
       </div>
+      <div id="rotate-buttons">
+        <button id="rotate-left">Left</button>
+        <button id="rotate-right">Right</button>
+      </div>
+      <button id="threeD-back-to-menu">Menu</button>
     </div>
   </body>
 </html>
