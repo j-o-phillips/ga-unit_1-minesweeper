@@ -40,7 +40,6 @@ const cubeBottom = document.getElementById("cube-bottom");
 const bombIcon = document.createElement("i");
 bombIcon.className = "fa-solid fa-bomb";
 bombIcon.style.color = "black";
-
 const happySadFace = document.getElementById("happy-sad-face");
 const threeDHappySadFace = document.getElementById("threeD-happy-sad-face");
 
@@ -76,7 +75,7 @@ let chosenBoardCols;
 let chosenBoardRows;
 let threeDBoardRows = 20;
 let threeDBoardCols = 20 * 4;
-let chosenNumberOfMines = 30;
+let chosenNumberOfMines;
 
 let board; //2d array board data model
 let gameState; //active, win, lose
