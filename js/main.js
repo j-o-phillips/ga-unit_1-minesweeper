@@ -14,6 +14,7 @@ const mineInput = document.getElementById("mine");
 const customGame = document.getElementById("custom-start");
 const menuContainer = document.getElementById("menu-container");
 const gameContainer = document.getElementById("game-container");
+const usernameContainer = document.getElementById("username-container");
 const backToMenu = document.getElementById("back-to-menu");
 const threeDBackToMenu = document.getElementById("threeD-back-to-menu");
 const careerGame = document.getElementById("career-start");
@@ -24,7 +25,7 @@ const nextLevel = document.getElementById("next-level");
 const rotateLeft = document.getElementById("rotate-left");
 const rotateRight = document.getElementById("rotate-right");
 
-//Cube faces
+//? CUBE FACES
 const threeDGameContainer = document.getElementById("threeD-game-container");
 const cube = document.getElementById("cube");
 const cubeContainer = document.getElementById("cube-container");
@@ -34,6 +35,14 @@ const cubeBack = document.getElementById("cube-back");
 const cubeLeft = document.getElementById("cube-left");
 const cubeTop = document.getElementById("cube-top");
 const cubeBottom = document.getElementById("cube-bottom");
+
+//? ICONS
+const bombIcon = document.createElement("i");
+bombIcon.className = "fa-solid fa-bomb";
+bombIcon.style.color = "black";
+
+const happySadFace = document.getElementById("happy-sad-face");
+const threeDHappySadFace = document.getElementById("threeD-happy-sad-face");
 
 //! CONSTANTS
 
@@ -52,6 +61,7 @@ class Cell {
 }
 
 const playerObj = {
+  username: "",
   totalScore: 0,
   careerLevel: 1,
 };
@@ -101,8 +111,8 @@ function init() {
 function createBoard() {
   //We add a grid sizes css to our grid from player input
   if (!threeDMode) {
-    grid.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 2.3vmin)`;
-    grid.style.gridTemplateRows = `repeat(${chosenBoardRows}, 2.3vmin)`;
+    grid.style.gridTemplateColumns = `repeat(${chosenBoardCols}, 20px)`;
+    grid.style.gridTemplateRows = `repeat(${chosenBoardRows}, 20px)`;
   }
   if (threeDMode) {
     cubeFront.style.gridTemplateColumns = `repeat(${20}, 20px)`;
@@ -210,20 +220,16 @@ function addNumbers() {
   //We do not need to iterate over the borders so we start r and c at 1 and finish at length -1
   for (let r = 1; r < board.length - 1; r++) {
     for (let c = 1; c < board[r].length - 1; c++) {
-      if (board[r][c].isMine === true) {
-        console.log("found mine");
-      } else {
+      if (!board[r][c].isMine) {
         //Borderlink conditions for 3d mode, checks must 'loop' around
         //Borderlink at start
         let adjMines = 0;
         if (board[r - 1][c - 1].borderLink) {
           if (board[r - 1][board[r].length - 1].isMine === true) adjMines++;
         }
-
         if (board[r][c - 1].borderLink) {
           if (board[r][board[r].length - 1].isMine === true) adjMines++;
         }
-
         if (board[r + 1][c - 1].borderLink) {
           if (board[r + 1][board[r].length - 1].isMine === true) adjMines++;
         }
@@ -231,11 +237,9 @@ function addNumbers() {
         if (board[r - 1][c + 1].borderLink) {
           if (board[r - 1][1].isMine === true) adjMines++;
         }
-
         if (board[r][c + 1].borderLink) {
           if (board[r][1].isMine === true) adjMines++;
         }
-
         if (board[r + 1][c + 1].borderLink) {
           if (board[r + 1][1].isMine === true) adjMines++;
         }
@@ -411,6 +415,17 @@ function renderHeader() {
 
   threeDMineDisplay.innerHTML = ("00" + flagsLeft).slice(-3);
   threeDTimeDisplay.innerHTML = ("00" + time).slice(-3);
+
+  if (gameState === "lose") {
+    happySadFace.className = "fa-solid fa-face-dizzy";
+    threeDHappySadFace.className = "fa-solid fa-face-dizzy";
+  } else if (gameState === "win") {
+    happySadFace.className = "fa-solid fa-face-laugh-squint";
+    threeDHappySadFace.className = "fa-solid fa-face-laugh-squint";
+  } else {
+    happySadFace.className = "fa-solid fa-face-smile";
+    threeDHappySadFace.className = "fa-solid fa-face-smile";
+  }
 }
 
 function renderBoard() {
@@ -422,10 +437,10 @@ function renderBoard() {
       if (board[r][c].isChecked === true) {
         cell.style.border = "1px solid rgb(72, 72, 72)";
       }
-
       //If cell is flagged
       if (board[r][c].isFlagged === true) {
         cell.innerHTML = "F";
+        cell.style.color = "red";
         cell.removeEventListener("click", handleClick);
       }
       if (board[r][c].isFlagged === false) {
@@ -463,9 +478,9 @@ function renderBoard() {
       //If game is lost
       if (gameState === "lose") {
         if (board[r][c].isMine === true) {
-          cell.innerHTML = "!";
           cell.style.backgroundColor = "red";
           //add bomb image
+          cell.appendChild(bombIcon.cloneNode(true));
           cell.style.border = "1px solid rgb(72, 72, 72)";
           stopTimer();
         }
@@ -474,11 +489,11 @@ function renderBoard() {
   }
 }
 
-function renderPlayerDetails(level, score, totalScore) {
+function renderPlayerDetails(username, level, score, totalScore) {
   //Update player details
+  document.getElementById("username-text").innerHTML = `PLAYER: ${username}`;
   document.getElementById("career-level").innerHTML = `LEVEL: ${level}`;
   document.getElementById("player-score").innerHTML = `SCORE: ${score}`;
-
   document.getElementById(
     "player-total-score"
   ).innerHTML = `TOTAL SCORE: ${totalScore}`;
@@ -506,7 +521,12 @@ function checkWinConditions() {
         let score = Math.floor((chosenNumberOfMines * 1000) / time);
         playerObj.totalScore += score;
 
-        renderPlayerDetails(playerObj.careerLevel, score, playerObj.totalScore);
+        renderPlayerDetails(
+          playerObj.username,
+          playerObj.careerLevel,
+          score,
+          playerObj.totalScore
+        );
         playerObj.careerLevel++;
         if (localStorage) {
           localStorage.setItem(user, JSON.stringify(playerObj));
@@ -560,6 +580,10 @@ function handleCareerStart() {
   //Set user to player input
   user = userName.value;
   //Add player detail html elemnts
+  const usernameText = document.createElement("h4");
+  usernameText.setAttribute("id", "username-text");
+  usernameContainer.appendChild(usernameText);
+
   const careerLevelDiv = document.createElement("div");
   careerLevelDiv.setAttribute("id", "career-level");
   detailsContainer.appendChild(careerLevelDiv);
@@ -576,14 +600,21 @@ function handleCareerStart() {
   careerModeActive = true;
   let loaded = JSON.parse(localStorage.getItem(user));
   if (loaded) {
+    playerObj.username = loaded.username;
     playerObj.careerLevel = loaded.careerLevel;
     playerObj.totalScore = loaded.totalScore;
   } else {
+    playerObj.username = user;
     playerObj.careerLevel = 1;
     playerObj.totalScore = 0;
   }
 
-  renderPlayerDetails(playerObj.careerLevel, 0, playerObj.totalScore);
+  renderPlayerDetails(
+    playerObj.username,
+    playerObj.careerLevel,
+    0,
+    playerObj.totalScore
+  );
 
   chosenBoardRows = 10 + playerObj.careerLevel * 2;
   chosenBoardCols = 10 + playerObj.careerLevel * 4;
@@ -600,17 +631,20 @@ function handleCareerStart() {
 }
 
 function handleCustomStart() {
-  //! Add some validation
   chosenBoardRows = Number(rowInput.value);
   chosenBoardCols = Number(colInput.value);
   chosenNumberOfMines = Number(mineInput.value);
-  flagsLeft = chosenNumberOfMines;
-  cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
+  if (chosenNumberOfMines > chosenBoardCols * chosenBoardRows) {
+    alert("Number of mines must be fewer than cells available");
+  } else {
+    flagsLeft = chosenNumberOfMines;
+    cellsToClear = chosenBoardCols * chosenBoardRows - chosenNumberOfMines;
 
-  menuContainer.style.display = "none";
-  gameContainer.style.display = "flex";
+    menuContainer.style.display = "none";
+    gameContainer.style.display = "flex";
 
-  init();
+    init();
+  }
 }
 
 function handleCustom3DStart() {
@@ -638,6 +672,9 @@ function handleBackToMenu() {
   //remove all cell div elements from html
   while (detailsContainer.hasChildNodes()) {
     detailsContainer.removeChild(detailsContainer.firstChild);
+  }
+  while (usernameContainer.hasChildNodes()) {
+    usernameContainer.removeChild(usernameContainer.firstChild);
   }
 
   while (grid.hasChildNodes()) {
@@ -755,7 +792,6 @@ function handleRestart() {
 }
 
 function handleNextLevel() {
-  console.log("next");
   nextLevel.style.display = "none";
   handleBackToMenu();
   handleCareerStart();
