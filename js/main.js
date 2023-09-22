@@ -477,6 +477,7 @@ function renderBoard() {
       //If game is lost
       if (gameState === "lose") {
         if (board[r][c].isMine === true) {
+          cell.innerHTML = "";
           cell.style.backgroundColor = "red";
           //add bomb image
           cell.appendChild(bombIcon.cloneNode(true));
