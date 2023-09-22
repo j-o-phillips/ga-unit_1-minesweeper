@@ -300,15 +300,15 @@ function checkAllAdjacent(r, c) {
         if (newCoords) checkList.push(newCoords);
         newCoords = undefined;
         //SW
-        newCoords = checkAdjacentCell(x + 1, 40);
+        newCoords = checkAdjacentCell(x + 1, threeDBoardCols);
         if (newCoords) checkList.push(newCoords);
         newCoords = undefined;
         //W
-        newCoords = checkAdjacentCell(x, 40);
+        newCoords = checkAdjacentCell(x, threeDBoardCols);
         if (newCoords) checkList.push(newCoords);
         newCoords = undefined;
         //NW
-        newCoords = checkAdjacentCell(x - 1, 40);
+        newCoords = checkAdjacentCell(x - 1, threeDBoardCols);
         if (newCoords) checkList.push(newCoords);
         newCoords = undefined;
       }
@@ -477,7 +477,6 @@ function renderBoard() {
       //If game is lost
       if (gameState === "lose") {
         if (board[r][c].isMine === true) {
-          cell.innerHTML = "";
           cell.style.backgroundColor = "red";
           //add bomb image
           cell.appendChild(bombIcon.cloneNode(true));
